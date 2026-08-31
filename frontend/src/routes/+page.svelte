@@ -1,25 +1,5 @@
-<script>
-  let { data } = $props();
-  let messages = $state(data.messages);
-  let newMessage = $state('');
-
-  async function addMessage() {
-    await fetch('/api/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: newMessage })
-    });
-    newMessage = '';
-    location.reload();
-  }
+<script lang="ts">
+  import Header from './Header.svelte';
 </script>
 
-<h1>Test Site (v0.0.2)</h1>
-<input bind:value={newMessage} placeholder="Say something" />
-<button onclick={addMessage}>Send</button>
-
-<ul>
-  {#each messages as msg}
-    <li>{msg.text}</li>
-  {/each}
-</ul>
+<Header name="Logikos" />
