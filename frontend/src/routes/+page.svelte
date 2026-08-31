@@ -14,7 +14,7 @@
   }
 </script>
 
-<h1>Test Site</h1>
+<h1>Test Site (v0.0.2)</h1>
 <input bind:value={newMessage} placeholder="Say something" />
 <button onclick={addMessage}>Send</button>
 
