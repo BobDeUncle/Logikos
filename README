@@ -1,31 +1,8 @@
 # Logikos
 
-Personal website project. SvelteKit frontend, Node/Express backend, MongoDB, all containerized and deployed to a self-hosted TrueNAS Scale server via GitHub Actions + GHCR + Watchtower, exposed to the internet through Cloudflare Tunnel.
-
-## Stack
-
-- **Frontend:** SvelteKit (Svelte 5, runes mode), TypeScript, Tailwind CSS (+ typography, forms plugins), mdsvex for Markdown/blog support
-- **Backend:** Node.js + Express + Mongoose
-- **Database:** MongoDB
-- **Adapter:** `@sveltejs/adapter-node` (standalone Node server output, not adapter-auto)
-
-## Project structure
-
-```
-logikos/
-├── frontend/          SvelteKit app
-│   └── Dockerfile
-├── backend/           Node/Express API
-│   └── Dockerfile
-├── docker-compose.yml Local dev — spins up frontend + backend + mongo
-└── .github/
-    └── workflows/
-        └── build.yml  Builds and pushes both images to GHCR on push to main
-```
+This is a website made partly for my web development business Logikos, and partly as a portfolio for work of mine I'm proud of.
 
 ## Local development
-
-Requires Docker + Docker Compose installed locally (not just on the deploy target).
 
 ```bash
 docker compose up --build
@@ -35,40 +12,27 @@ docker compose up --build
 - Backend API: http://localhost:8082
 - Mongo: internal only, not exposed to host
 
-Frontend's server-side `load()` calls the backend via Docker's internal network (`http://backend:3000`). Client-side fetches (e.g. form submissions) currently hit `http://localhost:8082` directly — **this needs to change to a relative path or real domain before/after going live**, since `localhost` won't resolve for real visitors.
+Frontend's server-side `load()` calls the backend via Docker's internal network (`http://backend:3000`). Client-side fetches go through a SvelteKit server route at `/api/messages` (see `frontend/src/routes/api/messages/+server.js`), which proxies to the backend internally — the browser never needs to know the backend's address directly, so this works the same in local dev, on the LAN, and in production.
 
 ### Common local dev commands
 
 ```bash
-cd frontend && npm run dev -- --open   # frontend only, hot reload, no Docker
-cd frontend && npm run build           # verify production build works
+cd frontend && npm run dev -- --open    # frontend only, hot reload, no Docker
+cd frontend && npm run build            # verify production build works
 cd backend && npm install               # after pulling changes with new deps
 ```
 
 ## Deployment pipeline
 
 1. Push to `main` on GitHub.
-2. GitHub Actions (`.github/workflows/build.yml`) builds `frontend` and `backend` images separately and pushes both to GHCR:
-   - `ghcr.io/bobdeuncle/logikos-frontend:latest`
-   - `ghcr.io/bobdeuncle/logikos-backend:latest`
-   - Image names are lowercased at runtime (GHCR requires it — GitHub usernames/repo names can contain uppercase, Docker tags can't).
+2. GitHub Actions (`.github/workflows/build.yml`) builds `frontend` and `backend` images separately and pushes both to GHCR, tagged with both `latest` and the commit SHA:
+   - `ghcr.io/bobdeuncle/logikos-frontend:latest` / `:<sha>`
+   - `ghcr.io/bobdeuncle/logikos-backend:latest` / `:<sha>`
 3. Both GHCR packages must be set to **public visibility** (Package settings on GitHub) or Watchtower won't be able to pull them without auth.
-4. On TrueNAS Scale: Custom App (YAML/Compose) running `frontend`, `backend`, and `mongo` as a stack. Mongo persists to a real dataset path on the pool (not an anonymous volume).
-5. **Watchtower** (separate Custom App on TrueNAS) polls GHCR every 5 minutes and auto-pulls/restarts `frontend` and `backend` when new images land. Mongo is intentionally excluded from Watchtower's watch list — it only updates on push, not on its own base image changing.
-6. **Cloudflare Tunnel** routes the public domain to the frontend's exposed port on TrueNAS. Backend is not publicly routed (internal only) unless a specific need arises.
-
-## Known gotchas (hard-won)
-
-- **Svelte 5 runes mode is forced** in `vite.config.ts` for everything outside `node_modules`. Old syntax (`export let`, `on:click`) will fail the build — use `$props()`, `$state()`, and native event attributes (`onclick`) instead.
-- **No standalone `svelte.config.js`** in this project version — SvelteKit config (adapter, preprocessors, extensions) lives inside the `sveltekit()` plugin block in `vite.config.ts`.
-- **GHCR requires fully lowercase image paths** — owner, repo, and tag. The workflow lowercases this at runtime via a shell step; don't hardcode mixed-case paths.
-- **Docker image names must match exactly** between the GitHub Actions push and the TrueNAS compose pull — double check casing if a pull fails.
-- Watch for **host port conflicts** on TrueNAS — check existing containers' bound ports before assigning new ones in a Custom App.
-- VS Code as a **Flatpak** doesn't reliably inherit host group membership (e.g. the `docker` group) — use the native `dnf`-installed VS Code instead if Docker commands mysteriously fail only inside the VS Code terminal.
+4. On TrueNAS Scale: Custom App (YAML/Compose) running `frontend`, `backend`, and `mongo` as a stack.
+5. **Watchtower** (separate Custom App on TrueNAS) polls GHCR every 5 minutes and auto-pulls/restarts any container labeled `com.centurylinklabs.watchtower.enable=true` — currently `frontend` and `backend`.
 
 ## TODO / not yet built
 
-- Real site content and Vuetify-style UI on top of the skeleton
-- Blog post listing page (currently mdsvex is configured but no dynamic post index exists yet)
-- Swap hardcoded `localhost` backend URL in client-side fetch to a relative/production path
-- Decide on Cloudflare Access / WAF rules if any admin or non-public routes get added later
+- Real site content and UI on top of the skeleton
+- Blog post listing page (mdsvex is configured but no dynamic post index exists yet)
