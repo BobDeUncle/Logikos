@@ -1,2 +1,0 @@
-# Logikos
-Logikos Website
