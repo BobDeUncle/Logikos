@@ -38,6 +38,7 @@
 		"vite": "^8.0.16"
 	},
 	"dependencies": {
+		"@fontsource/birthstone": "^5.3.0",
 		"@fontsource/raleway": "^5.3.0"
 	}
 }
