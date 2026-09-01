@@ -7,11 +7,18 @@
 		<li><a href={resolve('/')} class="font-navigation">HOME</a></li>
 		<li><a href={resolve('/blog')} class="font-navigation">BLOG</a></li>
 		<li><a href={resolve('/sermons')} class="font-navigation">SERMONS</a></li>
+
+		<li style="margin-left: auto">
+			<a href="https://substack.com/@jessemansbridge/posts" target="_blank" class="font-navigation">
+				SUBSTACK
+			</a>
+		</li>
 	</ul>
 </nav>
 
 <style>
 	ul {
+		display: flex;
 		padding-left: 32px;
 		padding-top: 32px;
 		padding-bottom: 32px;
