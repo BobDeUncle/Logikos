@@ -9,12 +9,20 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-<Header />
+<div class="app">
+	<Header />
 
-{@render children()}
+	{@render children()}
+</div>
 
 <style>
 	:global(body) {
 		background-color: var(--color-primary-500);
+	}
+
+	.app {
+		display: flex;
+		flex-direction: column;
+		min-height: 100vh;
 	}
 </style>
