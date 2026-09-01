@@ -3,7 +3,7 @@
 </script>
 
 <h1 class="font-title">Jesse Mansbridge</h1>
-<h2 class="font-navigation">is Logikos - Web Developer & Writer</h2>
+<h2 class="font-navigation">Web Developer & Writer</h2>
 
 <style>
 	h1 {
